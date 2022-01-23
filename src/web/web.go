@@ -16,9 +16,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/go-pkgz/auth"
-	"github.com/go-pkgz/auth/avatar"
-	"github.com/go-pkgz/auth/token"
 	"github.com/go-pkgz/lgr"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -55,6 +52,8 @@ type ServerOptions struct {
 	GoogleCSEC         string        // google client secret for oauth
 	TwitterCID         string        // twitter client id for oauth
 	TwitterCSEC        string        // twitter client secret for oauth
+	DiscordCID         string        // discord client id for oauth
+	DiscordCSEC        string        // discord client secret for oauth
 }
 
 // Server encapsulates a router and a server.
@@ -201,31 +200,18 @@ func New(l *lgr.Logger, opts ServerOptions) *Server {
 	handler.router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir(handler.options.Assets))))
 
 	// Auth middleware
-	authSvc := auth.NewService(auth.Opts{
-		SecretReader: token.SecretFunc(func(id string) (string, error) { // secret key for JWT
-			return handler.options.AuthSecret, nil
-		}),
-		TokenDuration:  handler.options.AuthTokenDuration,
-		CookieDuration: handler.options.AuthCookieDuration,
-		Issuer:         handler.options.AuthIssuer,
-		URL:            handler.options.AuthURL,
-		DisableXSRF:    true,
-		AvatarStore:    avatar.NewLocalFS(".tmp"),
-		Logger:         handler.log, // optional logger for auth library
-	})
-	authSvc.AddProvider("github", handler.options.GitHubCID, handler.options.GitHubCSEC)
-	authSvc.AddProvider("google", handler.options.GoogleCID, handler.options.GoogleCSEC)
-	authSvc.AddProvider("twitter", handler.options.TwitterCID, handler.options.TwitterCSEC)
-	authSvc.AddProvider("dev", "", "") // dev auth, runs dev oauth2 server on :8084
+	authSvc := handler.authMiddleware()
+	m := authSvc.Middleware()
 
 	go func() {
 		devAuthServer, err := authSvc.DevAuth()
 		if err != nil {
 			handler.log.Logf("FATAL %v", err)
 		}
+
 		devAuthServer.Run(context.Background())
 	}()
-	m := authSvc.Middleware()
+
 	handler.router.Use(m.Trace)
 	authRoutes, avaRoutes := authSvc.Handlers()
 	handler.router.PathPrefix("/auth").Handler(authRoutes)
