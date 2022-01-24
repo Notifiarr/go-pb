@@ -200,7 +200,7 @@ func New(l *lgr.Logger, opts ServerOptions) *Server {
 	handler.router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir(handler.options.Assets))))
 
 	// Auth middleware
-	authSvc := handler.authMiddleware()
+	authSvc := handler.authMiddleware(".tmp")
 	m := authSvc.Middleware()
 
 	go func() {

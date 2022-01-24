@@ -10,7 +10,7 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
-func (handler *Server) authMiddleware() *auth.Service {
+func (handler *Server) authMiddleware(storageDir string) *auth.Service {
 	// Auth middleware
 	authSvc := auth.NewService(auth.Opts{
 		SecretReader: token.SecretFunc(func(id string) (string, error) { // secret key for JWT
@@ -21,7 +21,7 @@ func (handler *Server) authMiddleware() *auth.Service {
 		Issuer:         handler.options.AuthIssuer,
 		URL:            handler.options.AuthURL,
 		DisableXSRF:    true,
-		AvatarStore:    avatar.NewLocalFS(".tmp"),
+		AvatarStore:    avatar.NewLocalFS(storageDir),
 		Logger:         handler.log, // optional logger for auth library
 	})
 
