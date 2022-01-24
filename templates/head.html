@@ -104,11 +104,22 @@
                     .catch(errorHandler);
             });
         }
+        dsc = document.getElementById('discordLogin');
+        if (dsc) {
+            dsc.addEventListener("click", e => {
+                e.preventDefault();
+                login("discord_custom")
+                    .then(() => {
+                        window.location.replace(window.location.href);
+                    })
+                    .catch(errorHandler);
+            });
+        }
         ghb = document.getElementById('githubLogin');
         if (ghb) {
             ghb.addEventListener("click", e => {
                 e.preventDefault();
-                login("github")
+                login("github_custom")
                     .then(() => {
                         window.location.replace(window.location.href);
                     })
@@ -119,7 +130,7 @@
         if (ggl) {
             ggl.addEventListener("click", e => {
                 e.preventDefault();
-                login("google")
+                login("google_custom")
                     .then(() => {
                         window.location.replace(window.location.href);
                     })
@@ -130,7 +141,7 @@
         if (twt) {
             twt.addEventListener("click", e => {
                 e.preventDefault();
-                login("twitter")
+                login("twitter_custom")
                     .then(() => {
                         window.location.replace(window.location.href);
                     })
