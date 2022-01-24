@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/go-pkgz/lgr"
+	"github.com/iliafrenkel/go-pb/src/store"
 	"github.com/iliafrenkel/go-pb/src/web"
 	"github.com/jessevdk/go-flags"
 )
@@ -43,7 +44,7 @@ var opts struct {
 		MaxBodySize    int64  `long:"max-body-size" env:"MAX_BODY_SIZE" default:"10240" description:"maximum size for request's body"`
 	} `group:"web" namespace:"web" env-namespace:"GOPB_WEB"`
 	DB struct {
-		Type       string `long:"type" env:"TYPE" default:"memory" choice:"memory" choice:"postgres" description:"database type to use for storage"`
+		Type       string `long:"type" env:"TYPE" default:"memory" choice:"memory" choice:"postgres" choice:"disk" description:"database type to use for storage"`
 		Connection string `long:"connection" env:"CONNECTION" default:"" description:"database connection string, ignored for memory"`
 	} `group:"db" namespace:"db" env-namespace:"GOPB_DB"`
 	Auth struct {
@@ -61,8 +62,9 @@ var opts struct {
 		DiscordCID     string        `long:"discord-cid" env:"DISCORD_CID" default:"" description:"discord client id used for oauth"`
 		DiscordCSEC    string        `long:"discord-csec" env:"DISCORD_CSEC" default:"" description:"discord client secret used for oauth"`
 	} `group:"auth" namespace:"auth" env-namespace:"GOPB_AUTH"`
-	Debug   bool   `long:"debug" env:"GOPB_DEBUG" description:"debug mode"`
-	LogFile string `long:"log-file" env:"GOPB_LOG_FILE" default:"" description:"full path to the log file, default is stdout"`
+	Debug   bool             `long:"debug" env:"GOPB_DEBUG" description:"debug mode"`
+	LogFile string           `long:"log-file" env:"GOPB_LOG_FILE" default:"" description:"full path to the log file, default is stdout"`
+	Disk    store.DiskConfig `group:"disk" namespace:"disk" env-namespace:"GOPB_DISK"`
 }
 
 func main() {
@@ -118,6 +120,7 @@ func main() {
 		TwitterCSEC:        opts.Auth.TwitterCSEC,
 		DiscordCID:         opts.Auth.DiscordCID,
 		DiscordCSEC:        opts.Auth.DiscordCSEC,
+		DiskConfig:         opts.Disk,
 	})
 
 	quit := make(chan os.Signal, 1)
